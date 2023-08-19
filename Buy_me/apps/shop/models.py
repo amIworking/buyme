@@ -1,5 +1,6 @@
 from django.db import models
-from Buy_me.apps.users.models import User
+# from apps.users.models import User
+from ..users.models import User
 
 STATE_CHOICES = (
     ('basket', 'Статус корзины'),
