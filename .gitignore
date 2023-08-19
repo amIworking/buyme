@@ -1,0 +1,11 @@
+.idea/
+.vscode/
+*.xml
+*.iml
+.RememberApp.sock
+.RememberAppins_uwsgi.ini
+.uwsgi_params
+../buyme/Buy_me/Buy_me/.env
+venv
+
+!/Buy_me/.env
