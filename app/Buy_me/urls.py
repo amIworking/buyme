@@ -17,8 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, re_path, include
 
+from apps.shop.views import ShopApiDetailView, ShopApiList
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/auth/', include('djoser.urls')),
     re_path(r'^auth/', include('djoser.urls.authtoken')),
+    path("api/v1/shopslist", ShopApiList.as_view()),
+    path("api/v1/shopsdetail/<int:pk>/", ShopApiDetailView.as_view()),
 ]
