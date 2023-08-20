@@ -1,6 +1,7 @@
 from django.db import models
-# from ..users.models import User
-from apps.users.models import User
+# Only works on relative path, if it will be absolute path module cannot be imported because of
+# apps not a package and cannot be it
+from ..users.models import User
 
 STATE_CHOICES = (
     ('basket', 'Статус корзины'),
@@ -15,17 +16,17 @@ STATE_CHOICES = (
 
 class Shop(models.Model):
     name = models.CharField(max_length=30, verbose_name='Название')
-    url = models.URLField(verbose_name='Ссылка', blank=True, help_text='<i>Введите URL сайта<\i>')
+    url = models.URLField(verbose_name='Ссылка', blank=True, help_text='<i>Введите URL сайта</i>')
     owner = models.OneToOneField(User, verbose_name='Владелец', on_delete=models.CASCADE, blank=True)
     state = models.BooleanField(verbose_name='Статус получения заказа', blank=True, default=True)
 
     class Meta:
         verbose_name = 'Магазин'
         verbose_name_plural = 'Список магазинов'
-        ordering = ('-name', )
+        ordering = ('-name',)
 
     def __str__(self):
-        return f'{self.name} | {self.url} |{self.owner} | {self.state}'
+        return f'{self.name}'
 
 
 class Category(models.Model):
@@ -35,10 +36,13 @@ class Category(models.Model):
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Список категорий'
-        ordering = ('-name', )
+        ordering = ('-name',)
 
     def __str__(self):
         return f'{self.name}'
+
+    # Bypassing ManyToMany restriction in admin.py
+    def get_category(self): return " | ".join([str(p) for p in self.shops.all()])
 
 
 class Product(models.Model):
@@ -49,7 +53,7 @@ class Product(models.Model):
     class Meta:
         verbose_name = 'Продукт'
         verbose_name_plural = 'Список продуктов'
-        ordering = ('-name', )
+        ordering = ('-name',)
 
     def __str__(self):
         return f'{self.name} | {self.category}'
@@ -73,13 +77,13 @@ class ProductInfo(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['product', 'shop'], name='unique_product_info'),
         ]
-        ordering = ('-name', )
+        ordering = ('-name',)
 
     def __str__(self):
         return f'{self.name} | {self.model} | {self.product} | {self.shop} | {self.quantity} | {self.price} | {self.price_rrc} | {self.parameters}'
 
 
-# не уверен на счёт логики создания отдельной модели для параметров товара
+# не уверен насчёт логики создания отдельной модели для параметров товара
 
 # class Parameter:
 #     name = models.CharField(max_length=30, verbose_name='Название')
@@ -110,7 +114,7 @@ class Order(models.Model):
     class Meta:
         verbose_name = 'Заказ'
         verbose_name_plural = 'Список заказов'
-        ordering = ('-date', )
+        ordering = ('-date',)
 
     def __str__(self):
         return f'{str(self.date)} | {self.user} | {self.state} | {self.contact}'
