@@ -124,7 +124,7 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order, verbose_name='Заказ', related_name='order_items', on_delete=models.CASCADE)
     product_info = models.ForeignKey(ProductInfo, verbose_name='Информация о продукте', related_name='ordered_items',
                                      on_delete=models.CASCADE)
-    quantity = models.IntegerField(verbose_name='Количество')
+    quantity = models.PositiveIntegerField(verbose_name='Количество', default=0)
 
     class Meta:
         verbose_name = 'Заказанный товар'
@@ -142,6 +142,7 @@ class Basket(models.Model):
                                 on_delete=models.CASCADE)
     user = models.ForeignKey(User, verbose_name='Пользователь', related_name='cart_user', on_delete=models.CASCADE)
     contact = models.ForeignKey(Contact, verbose_name='Контакт', related_name='cart_contact', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(verbose_name='Количество', default=0)
     
     class Meta:
         verbose_name = 'Корзина пользователя'
