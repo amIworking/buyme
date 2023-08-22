@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..shop.models import Shop, ShoppingCart
+from ..shop.models import Shop, Basket
 
 
 class ShopSerializerBase(serializers.ModelSerializer):
@@ -27,19 +27,19 @@ class ShopReadSerializer(ShopSerializerBase):
     pass
 
 
-class ShoppingCartSerializerBase():
+class BasketSerializerBase():
     class Meta:
-        model = ShoppingCart
+        model = Basket
         fields = ('user', 'product')
         
         
-class ShoppingCartAdd(ShoppingCartSerializerBase):
+class BasketAdd(BasketSerializerBase):
     class Meta:
-        model = ShoppingCart
+        model = Basket
         fields = ('user', 'product')
         
         
-class ShoppingCartRemove(ShoppingCartSerializerBase):
+class BasketRemove(BasketSerializerBase):
     class Meta:
-        model = ShoppingCart
+        model = Basket
         fields = ('user', 'product')
