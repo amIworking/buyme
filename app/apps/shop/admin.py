@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from ..shop.models import Shop, Category, Product, ProductInfo, Contact, Order, OrderItem, ShoppingCart
+from ..shop.models import Shop, Category, Product, ProductInfo, Contact, Order, OrderItem, Basket
 
 
 @admin.register(Shop)
@@ -45,7 +45,7 @@ class OrderItemAdmin(admin.ModelAdmin):
     list_display = ['order', 'product_info', 'quantity']
     list_filter = ['order']
     
-@admin.register(ShoppingCart)
-class ShoppingCartAdmin(admin.ModelAdmin):
+@admin.register(Basket)
+class BasketAdmin(admin.ModelAdmin):
     list_display = ['product', 'user']
     list_filter = ['product']

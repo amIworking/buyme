@@ -137,7 +137,7 @@ class OrderItem(models.Model):
         return f'{self.order} | {self.quantity}'
 
 
-class ShoppingCart(models.Model):
+class Basket(models.Model):
     product = models.ForeignKey(Product, verbose_name='Продукт', related_name='cart_product', blank=True,
                                 on_delete=models.CASCADE)
     user = models.ForeignKey(User, verbose_name='Пользователь', related_name='cart_user', on_delete=models.CASCADE)
