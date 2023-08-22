@@ -141,8 +141,7 @@ class ShoppingCart(models.Model):
     product = models.ForeignKey(Product, verbose_name='Продукт', related_name='cart_product', blank=True,
                                 on_delete=models.CASCADE)
     user = models.ForeignKey(User, verbose_name='Пользователь', related_name='cart_user', on_delete=models.CASCADE)
-    user_address = models.CharField(max_length=500, verbose_name='Адрес пользователя')
-    quantity = models.IntegerField(verbose_name='Количество')
+    contact = models.ForeignKey(Contact, verbose_name='Контакт', related_name='cart_contact', on_delete=models.CASCADE)
     
     class Meta:
         verbose_name = 'Корзина пользователя'

@@ -30,16 +30,16 @@ class ShopReadSerializer(ShopSerializerBase):
 class ShoppingCartSerializerBase():
     class Meta:
         model = ShoppingCart
-        fields = ('user', 'product', 'user_address')
+        fields = ('user', 'product')
         
         
 class ShoppingCartAdd(ShoppingCartSerializerBase):
     class Meta:
         model = ShoppingCart
-        fields = ('user', 'product', 'user_address')
+        fields = ('user', 'product')
         
         
 class ShoppingCartRemove(ShoppingCartSerializerBase):
     class Meta:
         model = ShoppingCart
-        fields = ('user', 'product', 'user_address')
+        fields = ('user', 'product')

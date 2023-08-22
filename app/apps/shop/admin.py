@@ -47,5 +47,5 @@ class OrderItemAdmin(admin.ModelAdmin):
     
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ['product', 'user', 'user_address']
+    list_display = ['product', 'user']
     list_filter = ['product']
