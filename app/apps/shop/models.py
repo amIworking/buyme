@@ -135,3 +135,18 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f'{self.order} | {self.quantity}'
+
+
+class ShoppingCart(models.Model):
+    product = models.ForeignKey(Product, verbose_name='Продукт', related_name='cart_product', blank=True,
+                                on_delete=models.CASCADE)
+    user = models.ForeignKey(User, verbose_name='Пользователь', related_name='cart_user', on_delete=models.CASCADE)
+    user_address = models.CharField(max_length=500, verbose_name='Адрес пользователя')
+    quantity = models.IntegerField(verbose_name='Количество')
+    
+    class Meta:
+        verbose_name = 'Корзина пользователя'
+        verbose_name_plural = 'Список пользовательских корзин'
+    
+    def __str__(self):
+        return f'{self.product} | {self.user}'

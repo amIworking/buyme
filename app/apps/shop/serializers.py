@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..shop.models import Shop
+from ..shop.models import Shop, ShoppingCart
 
 
 class ShopSerializerBase(serializers.ModelSerializer):
@@ -25,3 +25,21 @@ class ShopCreateSerializer(ShopSerializerBase):
 # выделение в отдельный сериализатор во избежание показа юзеру владельцев магазинов
 class ShopReadSerializer(ShopSerializerBase):
     pass
+
+
+class ShoppingCartSerializerBase():
+    class Meta:
+        model = ShoppingCart
+        fields = ('user', 'product', 'user_address')
+        
+        
+class ShoppingCartAdd(ShoppingCartSerializerBase):
+    class Meta:
+        model = ShoppingCart
+        fields = ('user', 'product', 'user_address')
+        
+        
+class ShoppingCartRemove(ShoppingCartSerializerBase):
+    class Meta:
+        model = ShoppingCart
+        fields = ('user', 'product', 'user_address')
