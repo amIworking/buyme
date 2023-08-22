@@ -19,7 +19,7 @@ from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 from django.conf import settings
 from django.conf.urls.static import static
-from apps.shop.views import ShopApiDetailView, ShopApiList
+from apps.shop.views import ShopApiDetailView, ShopApiList, BasketAddApi, BasketShowApi
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,6 +28,8 @@ urlpatterns = [
     path('api/v1/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path("api/v1/shopslist", ShopApiList.as_view()),
     path("api/v1/shopsdetail/<int:pk>/", ShopApiDetailView.as_view()),
+    path("api/v1/basketadd/<int:product_id>/", BasketAddApi.as_view()),
+    path("api/v1/basketshow/", BasketShowApi.as_view()),
     path("api-auth/", include("rest_framework.urls")),
     path("users/", include("apps.users.urls")),
 
