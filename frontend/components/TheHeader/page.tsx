@@ -20,7 +20,7 @@ const TheHeader = () => {
                     <aside className="header__aside">
                         <Link 
                         href="/login" 
-                        className={pathname === '/login' ? "header__aside-link login-btn login-btn--active" : "header__aside-link login-btn"}
+                        className={pathname === '/login' || pathname=== '/registration' ? "header__aside-link login-btn login-btn--active" : "header__aside-link login-btn"}
                         >Вход
                         </Link>
                         <Link href="/bag" className="header__aside-link">
