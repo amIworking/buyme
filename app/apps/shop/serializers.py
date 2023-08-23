@@ -6,7 +6,7 @@ from ..shop.models import Shop
 class ShopSerializerBase(serializers.ModelSerializer):
     class Meta:
         model = Shop
-        fields = ("name", "url", "state")
+        fields = '__all__'
 
 
 # доработать чтобы возвращал что-то типо status: магазин "название" удалён
@@ -19,7 +19,7 @@ class ShopDeleteSerializer(ShopSerializerBase):
 class ShopCreateSerializer(ShopSerializerBase):
     class Meta:
         model = Shop
-        fields = ("name", "url", "owner", "state")
+        fields = '__all__'
 
 
 # выделение в отдельный сериализатор во избежание показа юзеру владельцев магазинов
