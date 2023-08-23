@@ -1,0 +1,77 @@
+header {
+    background-color: #fa9b02;
+    box-shadow: 0px 2px 2px #fa9b02;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 40px 0;
+
+}
+
+.header__logo {
+    font-size: 30px;
+    color: rgb(209, 212, 215);
+    font-weight: 800;
+    text-shadow: 2px 2px 2px rgb(0, 0, 0);
+    user-select: none;
+}
+
+.header__nav {
+    margin: 0px 20px;
+}
+
+.header__nav-link {
+    transition: all 0.3s;
+    color: #183f3f;
+    margin-right: 20px;
+    font-size: 20px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.header__nav-bagicon{
+    width: 30px;
+    height: 30px;
+}
+.header__nav-link:hover {
+    color: rgb(209, 212, 215);
+}
+
+.header__aside {
+    font-size: 20px;
+    font-weight: 600;
+    color: #183f3f;
+    display: flex;
+    align-items: center;
+}
+
+.header__aside-link {
+    transition: all 0.3s;
+    margin: 0 5px;
+}
+
+.header__aside-link:hover {
+    color: rgb(209, 212, 215);
+}
+
+.bag-icon{
+    transition: all .3s;
+}
+.header__aside-link:hover .bag-icon {
+    fill: rgb(209, 212, 215);
+}
+
+.login-btn{
+    border-radius: 5px;
+    padding: 5px 10px;
+    border: 2px solid #183f3f;
+}
+.login-btn--active{
+    border: 2px solid rgb(209, 212, 215);
+    color: rgb(209, 212, 215);
+}
+.login-btn:hover{
+    border: 2px solid rgb(209, 212, 215);
+}

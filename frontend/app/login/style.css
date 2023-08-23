@@ -1,0 +1,107 @@
+.login {
+    padding: 50px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.login__title {
+    margin-top: 50px;
+    margin-bottom: 50px;
+    font-size: 36px;
+}
+
+.login__form {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.login__input {
+    color: #fa9b02;
+    text-shadow: 2px 2px 2px rgb(209, 212, 215);
+    padding: 5px 10px;
+    width: 300px;
+    margin: 5px 0;
+    font-size: 24px;
+    border-bottom: 2px solid #eccd99c5;
+    border-radius: 3px;
+}
+
+.login__input:focus::placeholder {
+
+    opacity: 1;
+    color: #fa9b02;
+}
+
+.login__input::placeholder {
+    font-size: 20px;
+    transition: all .3s;
+    color: #000;
+    opacity: 0.4;
+}
+
+.login__submit-btn {
+    margin-top: 20px;
+    font-size: 20px;
+    padding: 10px;
+    position: relative;
+    color: #565656;
+}
+.login__submit-btn::after {
+    transition: all .3s;
+    content: "";
+    top: 5px;
+    right: 0;
+    display: block;
+    position: absolute;
+    height: 20px;
+    width: 20px;
+    border-right: 2px solid #fa9b02;
+    border-top: 2px solid #fa9b02;
+
+}
+.login__submit-btn::before {
+    transition: all .3s;
+    content: "";
+    bottom: 5px;
+    left: 0;
+    display: block;
+    position: absolute;
+    height: 20px;
+    width: 20px;
+    border-left: 2px solid #fa9b02;
+    border-bottom: 2px solid #fa9b02;
+}
+.login__submit-btn:hover{
+    color: #fa9b02;
+}
+.login__submit-btn:hover::before {
+    left: -6px;
+    bottom: -1px;
+}
+.login__submit-btn:hover::after {
+    right: -6px;
+    top: -1px;
+}
+.login__registr-wrapper{
+    position: relative;
+    margin-top: 20px;
+}
+.login__regist-link {
+    color: #565656;
+
+    text-align: center;
+}
+.login__regist-link:hover ~ .login__registr-icon {
+    fill: #fa9b02;
+    right: -40px;
+}
+.login__registr-icon{
+    transition: all .3s;
+    position: absolute;
+    width: 25px;
+    top: 50%;
+    right: -30px;
+    transform: translateY(-50%);
+}
