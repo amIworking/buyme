@@ -19,7 +19,11 @@ from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 from django.conf import settings
 from django.conf.urls.static import static
-from apps.shop.views import ShopApiDetailView, ShopApiList, BasketAddApi, BasketShowApi
+from apps.shop.views import ShopApiDetailView, ShopApiList, BasketViewSet, BasketShowApi
+from rest_framework import routers
+
+router = routers.SimpleRouter()
+router.register(r'', BasketViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,8 +32,11 @@ urlpatterns = [
     path('api/v1/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path("api/v1/shopslist", ShopApiList.as_view()),
     path("api/v1/shopsdetail/<int:pk>/", ShopApiDetailView.as_view()),
-    path("api/v1/basketadd/<int:product_id>/", BasketAddApi.as_view()),
-    path("api/v1/basketshow/", BasketShowApi.as_view()),
+    path("api/v1/basket/", include(router.urls)),
+    path("api/v1/basketcreate/<int:pk>/", BasketViewSet.as_view({'post':'create_basket'})),
+    path("api/v1/basketadd/<int:pk>/", BasketViewSet.as_view({'put':'update'})),
+    path("api/v1/basketshow/", BasketViewSet.as_view({'get':'list'})),
+    path("api/v1/basketdelete/<int:pk>/", BasketViewSet.as_view({'put':'delete_basket_item'})),
     path("api-auth/", include("rest_framework.urls")),
     path("users/", include("apps.users.urls")),
 

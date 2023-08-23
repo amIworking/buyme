@@ -1,3 +1,4 @@
+from typing import Iterable, Optional
 from django.db import models
 # Only works on relative path, if it will be absolute path module cannot be imported because of
 # apps not a package and cannot be it
@@ -138,15 +139,18 @@ class OrderItem(models.Model):
 
 
 class Basket(models.Model):
-    product = models.ForeignKey(Product, verbose_name='Продукт', related_name='cart_product', blank=True,
+    product = models.ForeignKey(ProductInfo, verbose_name='Продукт', related_name='cart_product', blank=True,
                                 on_delete=models.CASCADE)
     user = models.ForeignKey(User, verbose_name='Пользователь', related_name='cart_user', on_delete=models.CASCADE)
-    contact = models.ForeignKey(Contact, verbose_name='Контакт', related_name='cart_contact', on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(verbose_name='Количество', default=0)
+    final_price = models.FloatField(verbose_name='Цена в корзине', default=0)
+    quantity = models.PositiveIntegerField(verbose_name='Количество', default=1)
     
     class Meta:
         verbose_name = 'Корзина пользователя'
         verbose_name_plural = 'Список пользовательских корзин'
+        
+    def recalculate_final_price(self):
+        self.final_price = self.product.price * self.quantity 
     
     def __str__(self):
         return f'{self.product} | {self.user}'

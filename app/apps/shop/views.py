@@ -1,9 +1,10 @@
 # Create your views here.
-from rest_framework import generics
+from rest_framework import generics, viewsets
+from rest_framework.decorators import action
 from rest_framework.views import APIView
 
 from .serializers import ShopReadSerializer, ShopSerializerBase, ShopDeleteSerializer, ShopCreateSerializer, BasketSerializerBase
-from ..shop.models import Shop, Basket, Product
+from ..shop.models import Shop, Basket, Product, ProductInfo
 from ..users.models import User
 
 
@@ -38,32 +39,58 @@ class BasketShowApi(APIView):
         
 
 
-class BasketAddApi(generics.CreateAPIView):
+class BasketViewSet(viewsets.ModelViewSet):
+    queryset = ProductInfo.objects.all()
+    serializer_class = BasketSerializerBase
     
-    def get_serializer(self, *args, **kwargs):
-       kwargs['context'] = self.get_serializer_context
-       
-       if 'product_id' in self.kwargs:
-           product_id = self.kwargs['product_id']
-           user = self.request.user
-           print(Basket.objects.filter(
-               product__id=product_id, 
-               user=user))
-           if Basket.objects.filter(
-               product__id=product_id, 
-               user=user):
-               basket = Basket.objects.get(
-               product__id=product_id, user=user)
-               basket.quantity += 1
-               basket.save()
-           else:
-               if not Product.objects.filter(id=product_id).exists:
-                # Придумать ответ на отсутсвие товара
-                   pass
-               else:
-                   product = Product.objects.get(id=product_id)
-                   basket = Basket.objects.create(
-                   product=product, 
-                   user=user)
-                   basket.save()
+    @action(methods='post', detail=False)
+    def create_basket(self, request, pk):
+        user = request.user
+        if not ProductInfo.objects.filter(pk=pk).exists:
+            error_message = "This product's item doesn't exist"
+         # Придумать ответ на отсутсвие товара в бд
+            pass
+        elif ProductInfo.objects.get(pk=pk).quantity == 0:
+            error_message = "Unfortunately, we're out of this product"
+             # Придумать ответ на отсутсвие товара в магазине
+            pass
+        elif Basket.objects.filter(product__pk=pk, user=user).exists():
+            self.update(request, pk)       
+        else:
+            product = ProductInfo.objects.get(pk=pk)
+            basket = Basket.objects.create(
+            product=product, 
+            user=user, quantity=1)
+            basket.recalculate_final_price()
+            basket.save()
+                   
+    def update(self, request, pk):
+        user = request.user
+        print(Basket.objects.filter(
+            product__pk=pk, 
+            user=user))
+        if Basket.objects.filter(
+            product__pk=pk, 
+            user=user):
+            basket = Basket.objects.get(
+            product__pk=pk, user=user)
+            basket.quantity += 1
+            basket.recalculate_final_price()
+            basket.save()
             
+    @action(methods='post', detail=False)
+    def delete_basket_item(self, request, pk):
+        user = request.user
+        if not Basket.objects.filter(product__pk=pk, user=user).exists():
+            error_message = "You have deleted all particular items"
+            pass
+            #Придумать ответ на отсутствие корзины
+        else:
+            basket = Basket.objects.get(product__pk=pk, user=user)
+            if basket.quantity <= 1:
+                basket.delete()
+            else:
+                basket.quantity -= 1
+                basket.recalculate_final_price()
+                basket.save()
+        
