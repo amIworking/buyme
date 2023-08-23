@@ -28,7 +28,7 @@ class ShopReadSerializer(ShopSerializerBase):
     pass
 
 
-class BasketSerializerBase():
+class BasketSerializerBase(serializers.ModelSerializer):
     class Meta:
         model = Basket
         fields = ('user', 'product')
