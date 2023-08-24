@@ -138,19 +138,40 @@ class OrderItem(models.Model):
         return f'{self.order} | {self.quantity}'
 
 
-class Basket(models.Model):
+class BasketItem(models.Model):
     product = models.ForeignKey(ProductInfo, verbose_name='Продукт', related_name='cart_product', blank=True,
                                 on_delete=models.CASCADE)
     user = models.ForeignKey(User, verbose_name='Пользователь', related_name='cart_user', on_delete=models.CASCADE)
-    final_price = models.FloatField(verbose_name='Цена в корзине', default=0)
+    price = models.FloatField(verbose_name='Цена за отдельный товар', default=0)
     quantity = models.PositiveIntegerField(verbose_name='Количество', default=1)
+    
+    class Meta:
+        verbose_name = 'Товар в пользовательской корзине'
+        verbose_name_plural = 'Товары в пользовательской корзине'
+        
+    def recalculate_price(self):
+        self.price = self.product.price * self.quantity 
+    
+    def __str__(self):
+        return f'{self.product} | {self.user} | {self.quantity}'
+
+class Basket(models.Model):
+    basket_items = models.ManyToManyField(BasketItem, verbose_name='Товары', related_name='basket_items', blank=True)
+    user = models.OneToOneField(User, verbose_name='Пользователь', related_name='basket_user', on_delete=models.CASCADE)
+    final_price = models.FloatField(verbose_name='Цена в корзине', default=0)
     
     class Meta:
         verbose_name = 'Корзина пользователя'
         verbose_name_plural = 'Список пользовательских корзин'
-        
-    def recalculate_final_price(self):
-        self.final_price = self.product.price * self.quantity 
     
+    def calculate_final_price(self):
+        self.final_price = 0
+        for item in self.basket_items.all():
+            print(item)
+            item.recalculate_price()
+            item.save()
+            self.final_price += item.price
+        self.save()
+            
     def __str__(self):
-        return f'{self.product} | {self.user}'
+        return f'{self.user} | {self.final_price}'

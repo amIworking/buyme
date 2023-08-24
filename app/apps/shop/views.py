@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.views import APIView
 
 from .serializers import ShopReadSerializer, ShopSerializerBase, ShopDeleteSerializer, ShopCreateSerializer, BasketSerializerBase
-from ..shop.models import Shop, Basket, Product, ProductInfo
+from ..shop.models import Shop, BasketItem, Basket, Product, ProductInfo
 from ..users.models import User
 
 
@@ -34,7 +34,7 @@ class BasketShowApi(APIView):
     
     def get_queryset(self):
         user = self.request.user
-        basket_items = Basket.objects.filter(user=user)
+        basket_items = BasketItem.objects.filter(user=user)
         return basket_items
         
 
@@ -44,53 +44,62 @@ class BasketViewSet(viewsets.ModelViewSet):
     serializer_class = BasketSerializerBase
     
     @action(methods='post', detail=False)
-    def create_basket(self, request, pk):
+    def add_basket_item(self, request, pk):
         user = request.user
+        basket = Basket.objects.get_or_create(user=user)[0]
         if not ProductInfo.objects.filter(pk=pk).exists:
             error_message = "This product's item doesn't exist"
-         # Придумать ответ на отсутсвие товара в бд
+            # Придумать ответ на отсутсвие товара в бд
+            print(error_message)
             pass
         elif ProductInfo.objects.get(pk=pk).quantity == 0:
             error_message = "Unfortunately, we're out of this product"
              # Придумать ответ на отсутсвие товара в магазине
+            print(error_message)
             pass
-        elif Basket.objects.filter(product__pk=pk, user=user).exists():
-            self.update(request, pk)       
+        product = ProductInfo.objects.get(pk=pk)
+        basket_item = BasketItem.objects.get_or_create(product=product, user=user)[0]
+        if Basket.objects.filter(basket_items=basket_item, user=user).exists():
+            self.update_basket_item(request, pk)       
         else:
-            product = ProductInfo.objects.get(pk=pk)
-            basket = Basket.objects.create(
-            product=product, 
-            user=user, quantity=1)
-            basket.recalculate_final_price()
+            basket.basket_items.add(basket_item)
+            basket.calculate_final_price()
             basket.save()
-                   
-    def update(self, request, pk):
+        print(basket.final_price)
+        
+    @action(methods='post', detail=False)               
+    def update_basket_item(self, request, pk):
         user = request.user
-        print(Basket.objects.filter(
-            product__pk=pk, 
-            user=user))
-        if Basket.objects.filter(
-            product__pk=pk, 
-            user=user):
-            basket = Basket.objects.get(
+        basket = Basket.objects.get_or_create(user=user)[0]
+        if BasketItem.objects.filter(
+            product__pk=pk, user=user):
+            basket_item = BasketItem.objects.get(
             product__pk=pk, user=user)
-            basket.quantity += 1
-            basket.recalculate_final_price()
+            basket_item.quantity += 1
+            basket_item.save()
+            basket.calculate_final_price()
             basket.save()
+        else:
+            self.create_basket_item(request, pk)
+        print(basket.final_price)
             
     @action(methods='post', detail=False)
     def delete_basket_item(self, request, pk):
         user = request.user
-        if not Basket.objects.filter(product__pk=pk, user=user).exists():
+        basket = Basket.objects.get_or_create(user=user)[0]
+        if not BasketItem.objects.filter(product__pk=pk, user=user).exists():
             error_message = "You have deleted all particular items"
+            print(error_message)
             pass
             #Придумать ответ на отсутствие корзины
         else:
-            basket = Basket.objects.get(product__pk=pk, user=user)
-            if basket.quantity <= 1:
-                basket.delete()
+            basket_item = BasketItem.objects.get(product__pk=pk, user=user)
+            if basket_item.quantity <= 1:
+                basket_item.delete()
             else:
-                basket.quantity -= 1
-                basket.recalculate_final_price()
-                basket.save()
+                basket_item.quantity -= 1
+                basket_item.save()
+            basket.calculate_final_price()
+            basket.save()
+        print(basket.final_price)
         
