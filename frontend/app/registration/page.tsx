@@ -1,21 +1,40 @@
 "use client"
 import Link from "next/link";
 import "./style.css"
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+
 
 const Registration = () => {
+    const confirmMessageRef = useRef<HTMLParagraphElement>(null)
+
+    const router = useRouter()
+
+    const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [checkPass, setCheckPass] = useState('')
     const [passwordAlert, setPasswordAlert] = useState(false)
+    const [isLoadingData, setIsLoadingData] = useState(false)
     return (
         <main className="registr">
             <h1 className="registr__title">Регистрация</h1>
             <form
+                style={isLoadingData ? { opacity: "0.4" } : {}}
                 onSubmit={(e) => {
                     e.preventDefault()
+                    
+                    setIsLoadingData(true)
+                    setTimeout(() => {
+                        setIsLoadingData(false)
+                        if (confirmMessageRef.current !== null) confirmMessageRef.current.style.display = "block"
+                    }, 2000);
+
                 }}
                 className="registr__form">
                 <input
+                    onChange={(e) => {
+
+                    }}
                     required
                     type="text"
                     placeholder="имя пользователя"
@@ -47,20 +66,35 @@ const Registration = () => {
 
                     }}
                 />
+
                 <strong className={passwordAlert ? "registr__password-alert registr__password-alert--active" : "registr__password-alert"}>Пароли не совпадают!</strong>
+                <p
+                    ref={confirmMessageRef}
+                    className="registr__confirm-message">
+                    Вам на почту отправлено письмо. Пройдите по присланной ссылке и войдите в учетную запись.
+                </p>
+
                 <button
+                    onClick={(e)=>{
+                        if (password !== checkPass) {
+                            e.preventDefault()
+                            setPasswordAlert(true)
+                        }
+                    }}
                     type="submit"
                     className="registr__submit-btn"
-                    onClick={(e) => {
-                        e.preventDefault()
-                        if (password !== checkPass) setPasswordAlert(true)
-                    }}
                 >Зарегистрироваться
                 </button>
+
+                <div
+                    style={isLoadingData ? { display: "block" } : { display: "none" }}
+                    className="registration__loading">
+                    <div className={isLoadingData ? "lds-ring lds-ring--active" : "lds-ring"}><div></div><div></div><div></div><div></div></div>
+                </div>
             </form>
 
-            <div className="registr__registr-wrapper">
-                <Link href="/login" className="registr__regist-link">
+            <div className="registr__login-wrapper">
+                <Link href="/login" className="registr__login-link">
                     Есть аккаунт?
                 </Link>
                 <svg
@@ -71,7 +105,7 @@ const Registration = () => {
                     fillRule="evenodd"
                     clipRule="evenodd"
                     viewBox="0 0 512 243.58"
-                    className="login__registr-icon"
+                    className="registr__login-icon"
                 >
                     <path
                         fillRule="nonzero"
@@ -79,6 +113,7 @@ const Registration = () => {
                     />
                 </svg>
             </div>
+
 
         </main>
     );
