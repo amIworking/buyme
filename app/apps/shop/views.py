@@ -1,6 +1,7 @@
 # Create your views here.
 from rest_framework import generics, viewsets
 from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .serializers import ShopReadSerializer, ShopSerializerBase, ShopDeleteSerializer, ShopCreateSerializer, BasketSerializerBase
@@ -66,28 +67,32 @@ class BasketViewSet(viewsets.ModelViewSet):
         product = ProductInfo.objects.get(pk=pk)
         basket_item = BasketItem.objects.get_or_create(product=product, user=user)[0]
         if Basket.objects.filter(basket_items=basket_item, user=user).exists():
-            self.update_basket_item(request, pk)       
+            return self.update_basket_item(request, pk)      
         else:
+            basket_item.recalculate_price()
             basket.basket_items.add(basket_item)
             basket.calculate_final_price()
-            basket.save()
-        print(basket.final_price)
+            return Response({'basket_item_name':basket_item.product.name, 
+                         'basket_item_quantity':basket_item.quantity,
+                         'basket_item_price':basket_item.price,
+                         'basket_price': basket.final_price})
         
     @action(methods='post', detail=False)               
     def update_basket_item(self, request, pk):
         user = request.user
         basket = Basket.objects.get_or_create(user=user)[0]
-        if BasketItem.objects.filter(
+        if not BasketItem.objects.filter(
             product__pk=pk, user=user):
+            return self.add_basket_item(request, pk)
+        else:
             basket_item = BasketItem.objects.get(
             product__pk=pk, user=user)
-            basket_item.quantity += 1
-            basket_item.save()
+            basket_item.increase_quantity_and_price(1)
             basket.calculate_final_price()
-            basket.save()
-        else:
-            self.create_basket_item(request, pk)
-        print(basket.final_price)
+            return Response({'basket_item_name':basket_item.product.name, 
+                         'basket_item_quantity':basket_item.quantity,
+                         'basket_item_price':basket_item.price,
+                         'basket_price': basket.final_price})
 
             
     @action(methods='post', detail=False)
@@ -96,30 +101,15 @@ class BasketViewSet(viewsets.ModelViewSet):
         basket = Basket.objects.get_or_create(user=user)[0]
         if not BasketItem.objects.filter(product__pk=pk, user=user).exists():
             error_message = "You have deleted all particular items"
-            print(error_message)
-            pass
+            return print(error_message)
             #Придумать ответ на отсутствие товара в корзине
         else:
             basket_item = BasketItem.objects.get(product__pk=pk, user=user)
-            if basket_item.quantity <= 1:
-                basket_item.delete()
-            else:
-                basket_item.quantity -= 1
-                basket_item.save()
+            basket_item.decrease_quantity_and_price(1)
             basket.calculate_final_price()
-            basket.save()
-        print(basket.final_price)
-        if not Basket.objects.filter(product__pk=pk, user=user).exists():
-            error_message = "You have deleted all particular items"
-            pass
-            #Придумать ответ на отсутствие корзины
-        else:
-            basket = Basket.objects.get(product__pk=pk, user=user)
-            if basket.quantity <= 1:
-                basket.delete()
-            else:
-                basket.quantity -= 1
-                basket.recalculate_final_price()
-                basket.save()
+            return Response({'basket_item_name':basket_item.product.name, 
+                         'basket_item_quantity':basket_item.quantity,
+                         'basket_item_price':basket_item.price,
+                         'basket_price': basket.final_price})
 
         

@@ -148,9 +148,23 @@ class BasketItem(models.Model):
     class Meta:
         verbose_name = 'Товар в пользовательской корзине'
         verbose_name_plural = 'Товары в пользовательской корзине'
+    
+    def increase_quantity_and_price(self, n: int) -> None:
+        if self.quantity + n > self.product.quantity:
+            raise ValueError("This product has been sold") 
+        self.quantity += n
+        self.recalculate_price()
         
-    def recalculate_price(self):
-        self.price = self.product.price * self.quantity 
+    def decrease_quantity_and_price(self, n: int) -> None:
+        if self.quantity - n <= 0:
+            self.delete()
+        else:
+            self.quantity -= n
+            self.recalculate_price()       
+        
+    def recalculate_price(self) -> None:
+        self.price = self.product.price * self.quantity
+        self.save() 
     
     def __str__(self):
         return f'{self.product} | {self.user} | {self.quantity}'
@@ -168,9 +182,6 @@ class Basket(models.Model):
     def calculate_final_price(self):
         self.final_price = 0
         for item in self.basket_items.all():
-            print(item)
-            item.recalculate_price()
-            item.save()
             self.final_price += item.price
         self.save()
             
