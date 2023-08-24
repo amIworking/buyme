@@ -44,19 +44,23 @@ class BasketViewSet(viewsets.ModelViewSet):
     serializer_class = BasketSerializerBase
     
     @action(methods='post', detail=False)
+    def show_basket(self, request):
+        user = request.user
+        basket = Basket.objects.get_or_create(user=user)[0]
+        print(basket)
+    
+    @action(methods='post', detail=False)
     def add_basket_item(self, request, pk):
         user = request.user
         basket = Basket.objects.get_or_create(user=user)[0]
         if not ProductInfo.objects.filter(pk=pk).exists:
             error_message = "This product's item doesn't exist"
             # Придумать ответ на отсутсвие товара в бд
-            print(error_message)
-            pass
+            return print(error_message)
         elif ProductInfo.objects.get(pk=pk).quantity == 0:
             error_message = "Unfortunately, we're out of this product"
              # Придумать ответ на отсутсвие товара в магазине
-            print(error_message)
-            pass
+            return print(error_message)
         product = ProductInfo.objects.get(pk=pk)
         basket_item = BasketItem.objects.get_or_create(product=product, user=user)[0]
         if Basket.objects.filter(basket_items=basket_item, user=user).exists():
@@ -91,7 +95,7 @@ class BasketViewSet(viewsets.ModelViewSet):
             error_message = "You have deleted all particular items"
             print(error_message)
             pass
-            #Придумать ответ на отсутствие корзины
+            #Придумать ответ на отсутствие товара в корзине
         else:
             basket_item = BasketItem.objects.get(product__pk=pk, user=user)
             if basket_item.quantity <= 1:
