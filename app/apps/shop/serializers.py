@@ -4,6 +4,7 @@ from ..shop.models import Shop, BasketItem
 
 
 
+
 class ShopSerializerBase(serializers.ModelSerializer):
     class Meta:
         model = Shop

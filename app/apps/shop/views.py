@@ -4,7 +4,9 @@ from rest_framework.decorators import action
 from rest_framework.views import APIView
 
 from .serializers import ShopReadSerializer, ShopSerializerBase, ShopDeleteSerializer, ShopCreateSerializer, BasketSerializerBase
+
 from ..shop.models import Shop, BasketItem, Basket, Product, ProductInfo
+
 from ..users.models import User
 
 
@@ -86,6 +88,7 @@ class BasketViewSet(viewsets.ModelViewSet):
         else:
             self.create_basket_item(request, pk)
         print(basket.final_price)
+
             
     @action(methods='post', detail=False)
     def delete_basket_item(self, request, pk):
@@ -106,4 +109,17 @@ class BasketViewSet(viewsets.ModelViewSet):
             basket.calculate_final_price()
             basket.save()
         print(basket.final_price)
+        if not Basket.objects.filter(product__pk=pk, user=user).exists():
+            error_message = "You have deleted all particular items"
+            pass
+            #Придумать ответ на отсутствие корзины
+        else:
+            basket = Basket.objects.get(product__pk=pk, user=user)
+            if basket.quantity <= 1:
+                basket.delete()
+            else:
+                basket.quantity -= 1
+                basket.recalculate_final_price()
+                basket.save()
+
         

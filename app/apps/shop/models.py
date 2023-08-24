@@ -159,6 +159,7 @@ class Basket(models.Model):
     basket_items = models.ManyToManyField(BasketItem, verbose_name='Товары', related_name='basket_items', blank=True)
     user = models.OneToOneField(User, verbose_name='Пользователь', related_name='basket_user', on_delete=models.CASCADE)
     final_price = models.FloatField(verbose_name='Цена в корзине', default=0)
+
     
     class Meta:
         verbose_name = 'Корзина пользователя'
@@ -175,3 +176,4 @@ class Basket(models.Model):
             
     def __str__(self):
         return f'{self.user} | {self.final_price}'
+
