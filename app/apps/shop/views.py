@@ -51,12 +51,12 @@ class BasketViewSet(viewsets.ModelViewSet):
     def show_basket(self, request):
         user = request.user
         basket = Basket.objects.get_or_create(user=user)[0]
-        basket_sr = BasketSerializerBase(basket).data
-        basket_items_sr = BasketItemSerializerBase(basket.basket_items.all(), many=True).data
-        products = {item.product for item in basket.basket_items.all()}
-        products_sr = ProductInfoSerializerBase(products, many=True).data
+        basket_sr = BasketSerializerBase(basket)
+        basket_items_sr = BasketItemSerializerBase(basket.basket_items.all(), many=True)
+        products = (item.product for item in basket.basket_items.all())
+        products_sr = ProductInfoSerializerBase(products, many=True)
         print('show ----')
-        return Response({'basket': basket_sr.data.data,
+        return Response({'basket': basket_sr.data,
                          'basket_items':basket_items_sr.data,
                         'products': products_sr.data})
     
@@ -82,10 +82,10 @@ class BasketViewSet(viewsets.ModelViewSet):
             basket.calculate_final_price()
             basket_sr = BasketSerializerBase(basket)
             basket_items_sr = BasketItemSerializerBase(basket.basket_items.all(), many=True)
-            products = {item.product for item in basket.basket_items.all()}
+            products = (item.product for item in basket.basket_items.all())
             products_sr = ProductInfoSerializerBase(products, many=True)
             print('add ----')
-            return Response({'basket': basket_sr.data.data,
+            return Response({'basket': basket_sr.data,
                          'basket_items':basket_items_sr.data,
                         'products': products_sr.data})
         
@@ -109,7 +109,7 @@ class BasketViewSet(viewsets.ModelViewSet):
         basket.calculate_final_price()
         basket_sr = BasketSerializerBase(basket)
         basket_items_sr = BasketItemSerializerBase(basket.basket_items.all(), many=True)
-        products = {item.product for item in basket.basket_items.all()}
+        products = (item.product for item in basket.basket_items.all())
         products_sr = ProductInfoSerializerBase(products, many=True)
         print('update ----')
         return Response({'basket': basket_sr.data,
@@ -131,10 +131,10 @@ class BasketViewSet(viewsets.ModelViewSet):
             basket.calculate_final_price()
             basket_sr = BasketSerializerBase(basket)
             basket_items_sr = BasketItemSerializerBase(basket.basket_items.all(), many=True)
-            products = {item.product for item in basket.basket_items.all()}
+            products = (item.product for item in basket.basket_items.all())
             products_sr = ProductInfoSerializerBase(products, many=True)
             print('delete ----')
-            return Response({'basket': basket_sr.data.data,
+            return Response({'basket': basket_sr.data,
                          'basket_items':basket_items_sr.data,
                         'products': products_sr.data})
 
