@@ -24,12 +24,25 @@ header {
 }
 
 .header__nav-link {
+    position: relative;
     transition: all 0.3s;
     color: #183f3f;
     margin-right: 20px;
     font-size: 20px;
     font-weight: 600;
     white-space: nowrap;
+}
+
+.header__nav-link--active::after {
+    transition: all .3s;
+    content: "";
+    display: block;
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-color: rgb(209, 212, 215);
 }
 .header__nav-bagicon{
     width: 30px;

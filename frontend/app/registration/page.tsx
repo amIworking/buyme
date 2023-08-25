@@ -22,9 +22,10 @@ const Registration = () => {
                 style={isLoadingData ? { opacity: "0.4" } : {}}
                 onSubmit={(e) => {
                     e.preventDefault()
-                    
+                    if (confirmMessageRef.current !== null) confirmMessageRef.current.style.display = "none"
                     setIsLoadingData(true)
                     setTimeout(() => {
+                        
                         setIsLoadingData(false)
                         if (confirmMessageRef.current !== null) confirmMessageRef.current.style.display = "block"
                     }, 2000);

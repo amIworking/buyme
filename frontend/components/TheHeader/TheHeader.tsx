@@ -1,26 +1,26 @@
 "use client"
-import {usePathname} from "next/navigation"
+import { usePathname } from "next/navigation"
 import Link from "next/link";
 import "./style.css"
 
 const TheHeader = () => {
     const pathname = usePathname()
-    
+
     return (
         <header>
             <div className="container">
                 <div className="header">
                     <Link href="/" className="header__logo">BUYME</Link>
                     <nav className="header__nav">
-                        <Link href="/catalog" className="header__nav-link">Каталог</Link>
-                        <Link href="/reviews" className="header__nav-link">Отзывы</Link>
-                        <Link href="/about" className="header__nav-link">О нас</Link>
-                        
+                        <Link href="/catalog" className={pathname === '/catalog' ? "header__nav-link header__nav-link--active" : "header__nav-link"}>Каталог</Link>
+                        <Link href="/reviews" className={pathname === '/reviews' ? "header__nav-link header__nav-link--active" : "header__nav-link"}>Отзывы</Link>
+                        <Link href="/about" className={pathname === '/about' ? "header__nav-link header__nav-link--active" : "header__nav-link"}>О нас</Link>
+
                     </nav>
                     <aside className="header__aside">
-                        <Link 
-                        href="/login" 
-                        className={pathname === '/login' || pathname=== '/registration' ? "header__aside-link login-btn login-btn--active" : "header__aside-link login-btn"}
+                        <Link
+                            href="/login"
+                            className={pathname === '/login' || pathname === '/registration' ? "header__aside-link login-btn login-btn--active" : "header__aside-link login-btn"}
                         >Вход
                         </Link>
                         <Link href="/bag" className="header__aside-link">

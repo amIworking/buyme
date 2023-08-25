@@ -61,6 +61,7 @@
 }
 
 .registr__submit-btn {
+    background-color: unset;
     margin-top: 20px;
     font-size: 20px;
     padding: 10px;
