@@ -1,10 +1,11 @@
 # Create your views here.
+from django.forms import model_to_dict
 from rest_framework import generics, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import ShopReadSerializer, ShopSerializerBase, ShopDeleteSerializer, ShopCreateSerializer, BasketSerializerBase
+from .serializers import ShopReadSerializer, ShopSerializerBase, ShopDeleteSerializer, ShopCreateSerializer, BasketSerializerBase, BasketItemSerializerBase
 
 from ..shop.models import Shop, BasketItem, Basket, Product, ProductInfo
 
@@ -43,14 +44,17 @@ class BasketShowApi(APIView):
 
 
 class BasketViewSet(viewsets.ModelViewSet):
-    queryset = ProductInfo.objects.all()
+    queryset = BasketItem.objects.all()
     serializer_class = BasketSerializerBase
     
     @action(methods='post', detail=False)
     def show_basket(self, request):
         user = request.user
         basket = Basket.objects.get_or_create(user=user)[0]
-        print(basket)
+        basket_json = BasketSerializerBase(basket).data
+        basket_items_json = BasketItemSerializerBase(basket.basket_items.all(), many=True).data
+        return Response({'basket': basket_json,
+                         'basket_items':basket_items_json})
     
     @action(methods='post', detail=False)
     def add_basket_item(self, request, pk):
@@ -72,10 +76,10 @@ class BasketViewSet(viewsets.ModelViewSet):
             basket_item.recalculate_price()
             basket.basket_items.add(basket_item)
             basket.calculate_final_price()
-            return Response({'basket_item_name':basket_item.product.name, 
-                         'basket_item_quantity':basket_item.quantity,
-                         'basket_item_price':basket_item.price,
-                         'basket_price': basket.final_price})
+            basket_json = BasketSerializerBase(basket).data
+            basket_items_json = BasketItemSerializerBase(basket.basket_items.all(), many=True).data
+            return Response({'basket': basket_json,
+                         'basket_items':basket_items_json})
         
     @action(methods='post', detail=False)               
     def update_basket_item(self, request, pk):
@@ -89,10 +93,10 @@ class BasketViewSet(viewsets.ModelViewSet):
             product__pk=pk, user=user)
             basket_item.increase_quantity_and_price(1)
             basket.calculate_final_price()
-            return Response({'basket_item_name':basket_item.product.name, 
-                         'basket_item_quantity':basket_item.quantity,
-                         'basket_item_price':basket_item.price,
-                         'basket_price': basket.final_price})
+            basket_json = BasketSerializerBase(basket).data
+            basket_items_json = BasketItemSerializerBase(basket.basket_items.all(), many=True).data
+            return Response({'basket': basket_json,
+                         'basket_items':basket_items_json})
 
             
     @action(methods='post', detail=False)
@@ -107,9 +111,9 @@ class BasketViewSet(viewsets.ModelViewSet):
             basket_item = BasketItem.objects.get(product__pk=pk, user=user)
             basket_item.decrease_quantity_and_price(1)
             basket.calculate_final_price()
-            return Response({'basket_item_name':basket_item.product.name, 
-                         'basket_item_quantity':basket_item.quantity,
-                         'basket_item_price':basket_item.price,
-                         'basket_price': basket.final_price})
+            basket_json = BasketSerializerBase(basket).data
+            basket_items_json = BasketItemSerializerBase(basket.basket_items.all(), many=True).data
+            return Response({'basket': basket_json,
+                         'basket_items':basket_items_json})
 
         
