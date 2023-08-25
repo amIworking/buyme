@@ -36,7 +36,7 @@ urlpatterns = [
     path("api/v1/basketadd/<int:pk>/", BasketViewSet.as_view({'post':'add_basket_item'})),
     path("api/v1/basketupdate/<int:pk>/", BasketViewSet.as_view({'put':'update_basket_item'})),
     path("api/v1/basketshow/", BasketViewSet.as_view({'get':"show_basket"})),
-    path("api/v1/basketdelete/<int:pk>/", BasketViewSet.as_view({'put':'delete_basket_item'})),
+    path("api/v1/basketdelete/<int:pk>/", BasketViewSet.as_view({'delete':'delete_basket_item'})),
     path("api-auth/", include("rest_framework.urls")),
     path("users/", include("apps.users.urls")),
 

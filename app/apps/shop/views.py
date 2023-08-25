@@ -47,17 +47,18 @@ class BasketViewSet(viewsets.ModelViewSet):
     queryset = BasketItem.objects.all()
     serializer_class = BasketSerializerBase
     
-    @action(methods='post', detail=False)
+    @action(methods='get', detail=True)
     def show_basket(self, request):
         user = request.user
         basket = Basket.objects.get_or_create(user=user)[0]
-        basket_json = BasketSerializerBase(basket).data
-        basket_items_json = BasketItemSerializerBase(basket.basket_items.all(), many=True).data
+        basket_sr = BasketSerializerBase(basket).data
+        basket_items_sr = BasketItemSerializerBase(basket.basket_items.all(), many=True).data
         products = {item.product for item in basket.basket_items.all()}
-        products_json = ProductInfoSerializerBase(products, many=True).data
-        return Response({'basket': basket_json,
-                         'basket_items':basket_items_json,
-                        'products': products_json})
+        products_sr = ProductInfoSerializerBase(products, many=True).data
+        print('show ----')
+        return Response({'basket': basket_sr.data.data,
+                         'basket_items':basket_items_sr.data,
+                        'products': products_sr.data})
     
     @action(methods='post', detail=False)
     def add_basket_item(self, request, pk):
@@ -72,43 +73,51 @@ class BasketViewSet(viewsets.ModelViewSet):
              # Придумать ответ на отсутсвие товара в магазине
             raise ValueError(error_message)
         product = ProductInfo.objects.get(pk=pk)
-        basket_item = BasketItem.objects.get_or_create(product=product, user=user)[0]
-        if Basket.objects.filter(basket_items=basket_item, user=user).exists():
+        basket_item, is_basket_item_new = BasketItem.objects.get_or_create(product=product, user=user)
+        if not is_basket_item_new:
             return self.update_basket_item(request, pk)      
         else:
             basket_item.recalculate_price()
             basket.basket_items.add(basket_item)
             basket.calculate_final_price()
-            basket_json = BasketSerializerBase(basket).data
-            basket_items_json = BasketItemSerializerBase(basket.basket_items.all(), many=True).data
+            basket_sr = BasketSerializerBase(basket)
+            basket_items_sr = BasketItemSerializerBase(basket.basket_items.all(), many=True)
             products = {item.product for item in basket.basket_items.all()}
-            products_json = ProductInfoSerializerBase(products, many=True).data
-            return Response({'basket': basket_json,
-                         'basket_items':basket_items_json,
-                        'products': products_json})
+            products_sr = ProductInfoSerializerBase(products, many=True)
+            print('add ----')
+            return Response({'basket': basket_sr.data.data,
+                         'basket_items':basket_items_sr.data,
+                        'products': products_sr.data})
         
-    @action(methods='post', detail=False)               
+    @action(methods='put', detail=False)               
     def update_basket_item(self, request, pk):
         user = request.user
         basket = Basket.objects.get_or_create(user=user)[0]
-        if not BasketItem.objects.filter(
-            product__pk=pk, user=user):
+        if not ProductInfo.objects.filter(pk=pk).exists:
+            error_message = "This product's item doesn't exist"
+            # Придумать ответ на отсутсвие товара в бд
+            raise ValueError(error_message)
+        elif ProductInfo.objects.get(pk=pk).quantity == 0:
+            error_message = "Unfortunately, we're out of this product"
+             # Придумать ответ на отсутсвие товара в магазине
+            raise ValueError(error_message)
+        product = ProductInfo.objects.get(pk=pk)
+        basket_item, is_basket_item_new = BasketItem.objects.get_or_create(product=product, user=user)
+        if not is_basket_item_new:
             return self.add_basket_item(request, pk)
-        else:
-            basket_item = BasketItem.objects.get(
-            product__pk=pk, user=user)
-            basket_item.increase_quantity_and_price(1)
-            basket.calculate_final_price()
-            basket_json = BasketSerializerBase(basket).data
-            basket_items_json = BasketItemSerializerBase(basket.basket_items.all(), many=True).data
-            products = {item.product for item in basket.basket_items.all()}
-            products_json = ProductInfoSerializerBase(products, many=True).data
-            return Response({'basket': basket_json,
-                         'basket_items':basket_items_json,
-                        'products': products_json})
+        basket_item.increase_quantity_and_price()
+        basket.calculate_final_price()
+        basket_sr = BasketSerializerBase(basket)
+        basket_items_sr = BasketItemSerializerBase(basket.basket_items.all(), many=True)
+        products = {item.product for item in basket.basket_items.all()}
+        products_sr = ProductInfoSerializerBase(products, many=True)
+        print('update ----')
+        return Response({'basket': basket_sr.data,
+                         'basket_items':basket_items_sr.data,
+                        'products': products_sr.data})
 
             
-    @action(methods='post', detail=False)
+    @action(methods='delete', detail=False)
     def delete_basket_item(self, request, pk):
         user = request.user
         basket = Basket.objects.get_or_create(user=user)[0]
@@ -118,14 +127,15 @@ class BasketViewSet(viewsets.ModelViewSet):
             #Придумать ответ на отсутствие товара в корзине
         else:
             basket_item = BasketItem.objects.get(product__pk=pk, user=user)
-            basket_item.decrease_quantity_and_price(1)
+            basket_item.decrease_quantity_and_price()
             basket.calculate_final_price()
-            basket_json = BasketSerializerBase(basket).data
-            basket_items_json = BasketItemSerializerBase(basket.basket_items.all(), many=True).data
+            basket_sr = BasketSerializerBase(basket)
+            basket_items_sr = BasketItemSerializerBase(basket.basket_items.all(), many=True)
             products = {item.product for item in basket.basket_items.all()}
-            products_json = ProductInfoSerializerBase(products, many=True).data
-            return Response({'basket': basket_json,
-                         'basket_items':basket_items_json,
-                        'products': products_json})
+            products_sr = ProductInfoSerializerBase(products, many=True)
+            print('delete ----')
+            return Response({'basket': basket_sr.data.data,
+                         'basket_items':basket_items_sr.data,
+                        'products': products_sr.data})
 
         

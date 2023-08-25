@@ -149,13 +149,13 @@ class BasketItem(models.Model):
         verbose_name = 'Товар в пользовательской корзине'
         verbose_name_plural = 'Товары в пользовательской корзине'
     
-    def increase_quantity_and_price(self, n: int) -> None:
+    def increase_quantity_and_price(self, n: int = 1) -> None:
         if self.quantity + n > self.product.quantity:
             raise ValueError("This product has been sold") 
         self.quantity += n
         self.recalculate_price()
         
-    def decrease_quantity_and_price(self, n: int) -> None:
+    def decrease_quantity_and_price(self, n: int = 1) -> None:
         if self.quantity - n <= 0:
             self.delete()
         else:
