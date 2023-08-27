@@ -19,27 +19,38 @@ from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 from django.conf import settings
 from django.conf.urls.static import static
-from apps.shop.views import ShopApiDetailView, ShopApiList, BasketViewSet, BasketShowApi
-from rest_framework import routers
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework import permissions, routers
 
-router = routers.SimpleRouter()
-router.register(r'', BasketViewSet)
+from apps.shop.views import ShopView, BasketView, ProductsView
+
+v1_router = routers.SimpleRouter()
+v1_router.register(r'shops', ShopView, basename='shops')
+v1_router.register(r'products', ProductsView, basename='products')
+v1_router.register(r'basket', BasketView, basename='basket')
+
+
+schema_view = get_schema_view(
+    openapi.Info(title="Dominos API", default_version="v1", description="Routes of Dominos project"),
+    public=False,
+    permission_classes=(permissions.AllowAny,),
+)
+
+v1_api = [
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path('', include(v1_router.urls)),
+    path("swagger(<str:format>.json|.yaml)/", schema_view.without_ui(), name="schema-json"),
+    path("swagger/", schema_view.with_ui("swagger"), name="schema-swagger-ui"),
+    path("docs/", schema_view.with_ui("redoc"), name="schema-redoc"),
+]
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/v1/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
-    path("api/v1/shopslist", ShopApiList.as_view()),
-    path("api/v1/shopsdetail/<int:pk>/", ShopApiDetailView.as_view()),
-    path("api/v1/basket/", include(router.urls)),
-    path("api/v1/basketadd/<int:pk>/", BasketViewSet.as_view({'post':'add_basket_item'})),
-    path("api/v1/basketupdate/<int:pk>/", BasketViewSet.as_view({'put':'update_basket_item'})),
-    path("api/v1/basketshow/", BasketViewSet.as_view({'get':"show_basket"})),
-    path("api/v1/basketdelete/<int:pk>/", BasketViewSet.as_view({'delete':'delete_basket_item'})),
-    path("api-auth/", include("rest_framework.urls")),
-    path("users/", include("apps.users.urls")),
-
+    path('api/v1/', include(v1_api)),
 ]
 
 if settings.DEBUG:

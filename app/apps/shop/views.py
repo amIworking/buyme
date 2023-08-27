@@ -1,141 +1,93 @@
 # Create your views here.
-from django.forms import model_to_dict
-from rest_framework import generics, viewsets
+from rest_framework import mixins, viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
-from .serializers import *
+from apps.shop.serializers import (
+    ShopSerializerBase, ShopCreateSerializer, ShopReadSerializer, ShopDeleteSerializer,
+    BasketSerializerBase, ChangeItemSerializer, DeleteBasketItem,
+    ProductSerializer
+)
 
-from ..shop.models import Shop, BasketItem, Basket, Product, ProductInfo
-
-from ..users.models import User
+from apps.shop.models import Shop, Basket, ProductInfo
 
 
-# прочитать(get запрос) shop по pk, patch, put и delete запросы к shop
-class ShopApiDetailView(generics.RetrieveUpdateDestroyAPIView):
+class ShopView(mixins.ListModelMixin,
+               mixins.RetrieveModelMixin,
+               mixins.CreateModelMixin,
+               mixins.DestroyModelMixin,
+               viewsets.GenericViewSet):
     queryset = Shop.objects.all()
 
-    # чтобы не показывать обычному пользователю владельца магаза надо узнать какой именно запрос он посылает
+    serializers = {
+        'list': ShopSerializerBase,
+        'retrieve': ShopReadSerializer,
+        'create': ShopCreateSerializer,
+        'destroy': ShopDeleteSerializer,  # вы действительно хотите давать удалять магазины?)
+    }
+    permission_classes_map = {
+        'list': (permissions.AllowAny,),
+        'retrieve': (permissions.AllowAny,),
+        'create': (permissions.IsAdminUser,),
+        'destroy': (permissions.IsAdminUser,),
+    }
+
     def get_serializer_class(self):
-        if self.request.method == "GET":
-            return ShopReadSerializer
-        elif self.request.method == "DELETE":
-            return ShopDeleteSerializer
-        return ShopSerializerBase
+        return self.serializers.get(self.action)
+
+    def get_permissions(self):
+        return [permission() for permission in self.permission_classes_map.get(self.action)]
 
 
-# get запрос на список всех магазинов, post запрос на создание магазина
-class ShopApiList(generics.ListCreateAPIView):
-    queryset = Shop.objects.all()
-
-    def get_serializer_class(self):
-        if self.request.method == "GET":
-            return ShopSerializerBase
-        return ShopCreateSerializer
-
-class BasketShowApi(APIView):
-    
-    def get_queryset(self):
-        user = self.request.user
-        basket_items = BasketItem.objects.filter(user=user)
-        return basket_items
-        
+class ProductsView(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = ProductInfo.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = (permissions.AllowAny,)
 
 
-class BasketViewSet(viewsets.ModelViewSet):
-    queryset = BasketItem.objects.all()
+class BasketView(viewsets.ViewSet):
+
+    queryset = Basket.objects.all()
     serializer_class = BasketSerializerBase
-    
-    @action(methods='get', detail=True)
-    def show_basket(self, request):
-        user = request.user
-        basket = Basket.objects.get_or_create(user=user)[0]
-        basket_sr = BasketSerializerBase(basket)
-        basket_items_sr = BasketItemSerializerBase(basket.basket_items.all(), many=True)
-        products = (item.product for item in basket.basket_items.all())
-        products_sr = ProductInfoSerializerBase(products, many=True)
-        print('show ----')
-        return Response({'basket': basket_sr.data,
-                         'basket_items':basket_items_sr.data,
-                        'products': products_sr.data})
-    
-    @action(methods='post', detail=False)
-    def add_basket_item(self, request, pk):
-        user = request.user
-        basket = Basket.objects.get_or_create(user=user)[0]
-        if not ProductInfo.objects.filter(pk=pk).exists:
-            error_message = "This product's item doesn't exist"
-            # Придумать ответ на отсутсвие товара в бд
-            raise ValueError(error_message)
-        elif ProductInfo.objects.get(pk=pk).quantity == 0:
-            error_message = "Unfortunately, we're out of this product"
-             # Придумать ответ на отсутсвие товара в магазине
-            raise ValueError(error_message)
-        product = ProductInfo.objects.get(pk=pk)
-        basket_item, is_basket_item_new = BasketItem.objects.get_or_create(product=product, user=user)
-        if not is_basket_item_new:
-            return self.update_basket_item(request, pk)      
-        else:
-            basket_item.recalculate_price()
-            basket.basket_items.add(basket_item)
-            basket.calculate_final_price()
-            basket_sr = BasketSerializerBase(basket)
-            basket_items_sr = BasketItemSerializerBase(basket.basket_items.all(), many=True)
-            products = (item.product for item in basket.basket_items.all())
-            products_sr = ProductInfoSerializerBase(products, many=True)
-            print('add ----')
-            return Response({'basket': basket_sr.data,
-                         'basket_items':basket_items_sr.data,
-                        'products': products_sr.data})
-        
-    @action(methods='put', detail=False)               
-    def update_basket_item(self, request, pk):
-        user = request.user
-        basket = Basket.objects.get_or_create(user=user)[0]
-        if not ProductInfo.objects.filter(pk=pk).exists:
-            error_message = "This product's item doesn't exist"
-            # Придумать ответ на отсутсвие товара в бд
-            raise ValueError(error_message)
-        elif ProductInfo.objects.get(pk=pk).quantity == 0:
-            error_message = "Unfortunately, we're out of this product"
-             # Придумать ответ на отсутсвие товара в магазине
-            raise ValueError(error_message)
-        product = ProductInfo.objects.get(pk=pk)
-        basket_item, is_basket_item_new = BasketItem.objects.get_or_create(product=product, user=user)
-        if not is_basket_item_new:
-            return self.add_basket_item(request, pk)
-        basket_item.increase_quantity_and_price()
-        basket.calculate_final_price()
-        basket_sr = BasketSerializerBase(basket)
-        basket_items_sr = BasketItemSerializerBase(basket.basket_items.all(), many=True)
-        products = (item.product for item in basket.basket_items.all())
-        products_sr = ProductInfoSerializerBase(products, many=True)
-        print('update ----')
-        return Response({'basket': basket_sr.data,
-                         'basket_items':basket_items_sr.data,
-                        'products': products_sr.data})
+    permission_classes = (permissions.AllowAny,)
 
-            
-    @action(methods='delete', detail=False)
-    def delete_basket_item(self, request, pk):
-        user = request.user
-        basket = Basket.objects.get_or_create(user=user)[0]
-        if not BasketItem.objects.filter(product__pk=pk, user=user).exists():
-            error_message = "You have deleted all particular items"
-            raise ValueError(error_message)
-            #Придумать ответ на отсутствие товара в корзине
-        else:
-            basket_item = BasketItem.objects.get(product__pk=pk, user=user)
-            basket_item.decrease_quantity_and_price()
-            basket.calculate_final_price()
-            basket_sr = BasketSerializerBase(basket)
-            basket_items_sr = BasketItemSerializerBase(basket.basket_items.all(), many=True)
-            products = (item.product for item in basket.basket_items.all())
-            products_sr = ProductInfoSerializerBase(products, many=True)
-            print('delete ----')
-            return Response({'basket': basket_sr.data,
-                         'basket_items':basket_items_sr.data,
-                        'products': products_sr.data})
+    def list(self, request, *args, **kwargs):
+        """Корзина"""
+        basket, is_created = Basket.objects.get_or_create(user=request.user)
+        return Response(BasketSerializerBase(instance=basket).data)
 
+    @action(methods=['post'], detail=False, serializer_class=ChangeItemSerializer)
+    def add_basket_item(self, request):
+        """Добавить продукт в корзину"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        basket = serializer.save()
+        return Response(BasketSerializerBase(instance=basket).data)
         
+    @action(methods=['post'], detail=False, serializer_class=ChangeItemSerializer)
+    def update_basket_item(self, request):
+        """Изменить количество продкута"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        basket = serializer.save()
+        return Response(BasketSerializerBase(instance=basket).data)
+
+    @action(methods=['post'], detail=False, serializer_class=DeleteBasketItem)
+    def delete_basket_item(self, request):
+        """Удалить продукт в корзине"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        basket = serializer.save()
+        return Response(BasketSerializerBase(instance=basket).data)
+
+    def get_serializer(self, *args, serializer_class=None, request=None, **kwargs):
+        """
+        Return instance of serializer with a request in context.
+        """
+        serializer_class = serializer_class or self.serializer_class
+        if "context" not in kwargs:
+            request = request or getattr(self, "request", None)
+            assert request, "self.request is not set and is not passed in kwargs"
+            kwargs["context"] = {"request": request}
+        return serializer_class(**kwargs)
+
