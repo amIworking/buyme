@@ -12,19 +12,22 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 import os
-from decouple import config
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+env = environ.Env(DEBUG=(bool, False), SECRET_KEY=(str, ""))
+env.read_env(os.path.join(BASE_DIR, "../.env"))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = env.str('SECRET_KEY', 'secret')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config("DEBUG")
+DEBUG = env.bool("DEBUG", True)
 
 ALLOWED_HOSTS = []
 
@@ -80,21 +83,8 @@ WSGI_APPLICATION = 'Buy_me.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {'default': {
-    'ENGINE': 'django.db.backends.postgresql',
-    'NAME': config('DB_NAME'),
-    'USER': config('DB_USER'),
-    'PASSWORD': config('DB_USER_PASSWORD'),
-    'HOST': config('DB_HOST'),
-    'PORT': config('DB_PORT'),
-    'TEST': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('TEST_DB_NAME'),
-        'USER': config('TEST_DB_USER'),
-        'PASSWORD': config('TEST_DB_USER_PASSWORD'),
-    }
-
-}
+DATABASES = {
+    "default": env.db("DATABASE_URL", "postgres://root:p@ssword@localhost:5432/buyme_db", "postgres")
 }
 
 

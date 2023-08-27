@@ -121,6 +121,7 @@ celerybeat.pid
 
 # Environments
 .env
+.dockerenv
 .venv
 env/
 venv/
@@ -174,3 +175,6 @@ cython_debug/
 
 # Built Visual Studio Code Extensions
 *.vsix
+
+# docker container local data
+/db/
