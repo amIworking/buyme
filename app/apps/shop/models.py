@@ -1,8 +1,7 @@
-from typing import Iterable, Optional
 from django.db import models
-# Only works on relative path, if it will be absolute path module cannot be imported because of
-# apps not a package and cannot be it
-from ..users.models import User
+
+from apps.users.models import User
+
 
 STATE_CHOICES = (
     ('basket', 'Статус корзины'),
@@ -141,36 +140,27 @@ class OrderItem(models.Model):
 class BasketItem(models.Model):
     product = models.ForeignKey(ProductInfo, verbose_name='Продукт', related_name='cart_product', blank=True,
                                 on_delete=models.CASCADE)
-    user = models.ForeignKey(User, verbose_name='Пользователь', related_name='cart_user', on_delete=models.CASCADE)
-    price = models.FloatField(verbose_name='Цена за отдельный товар', default=0)
+    basket = models.ForeignKey('Basket', verbose_name='Продукт', related_name='cart_product', blank=True,
+                                on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(verbose_name='Количество', default=1)
     
     class Meta:
         verbose_name = 'Товар в пользовательской корзине'
         verbose_name_plural = 'Товары в пользовательской корзине'
-    
-    def increase_quantity_and_price(self, n: int = 1) -> None:
-        if self.quantity + n > self.product.quantity:
-            raise ValueError("This product has been sold") 
-        self.quantity += n
-        self.recalculate_price()
-        
-    def decrease_quantity_and_price(self, n: int = 1) -> None:
-        if self.quantity - n <= 0:
+
+    def set_quantity(self, n: int):
+        if n <= 0:
             self.delete()
-        else:
-            self.quantity -= n
-            self.recalculate_price()       
-        
-    def recalculate_price(self) -> None:
-        self.price = self.product.price * self.quantity
-        self.save() 
-    
+            return
+        self.quantity = n
+        self.save()
+
     def __str__(self):
-        return f'{self.product} | {self.user} | {self.quantity}'
+        return f'{self.product} | {self.basket} | {self.quantity}'
+
 
 class Basket(models.Model):
-    basket_items = models.ManyToManyField(BasketItem, verbose_name='Товары', related_name='basket_items', blank=True)
+    products = models.ManyToManyField(ProductInfo, through=BasketItem, verbose_name='Товары', related_name='basket_items', blank=True)
     user = models.OneToOneField(User, verbose_name='Пользователь', related_name='basket_user', on_delete=models.CASCADE)
     final_price = models.FloatField(verbose_name='Цена в корзине', default=0)
 
@@ -180,9 +170,13 @@ class Basket(models.Model):
         verbose_name_plural = 'Список пользовательских корзин'
     
     def calculate_final_price(self):
-        self.final_price = 0
-        for item in self.basket_items.all():
-            self.final_price += item.price
+        items = (
+            BasketItem.objects
+            .filter(basket=self)
+            .select_related('product')
+            .only('quantity', 'product')
+        )
+        self.final_price = sum(item.quantity * item.product.price for item in items)
         self.save()
             
     def __str__(self):

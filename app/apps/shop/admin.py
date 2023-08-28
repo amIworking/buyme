@@ -49,5 +49,5 @@ class OrderItemAdmin(admin.ModelAdmin):
     
 @admin.register(BasketItem)
 class BasketAdmin(admin.ModelAdmin):
-    list_display = ['product', 'user']
-    list_filter = ['product']
+    list_display = ['product', 'basket']
+    list_filter = ['product', 'basket__user']
