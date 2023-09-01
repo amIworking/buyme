@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.shop.models import Shop, BasketItem, Basket, ProductInfo
+from apps.shop.models import Shop, BasketItem, Basket, ProductInfo, OrderItem, Order, Contact
 
 
 class ShopSerializerBase(serializers.ModelSerializer):
@@ -102,3 +102,53 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductInfo
         fields = ('id', 'name', 'price', 'quantity', )
+
+class ContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contact
+        fields = ("city", "street", "house", "structure", "building", "apartment", "phone")
+class OrderSerializerBase(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ('id', 'user', 'state', 'contact', 'date',)
+
+class ChangeOrderSerializer(ChangeItemSerializer):
+    contact = serializers.IntegerField(help_text='contact id')
+    quantity = None
+    product = None
+    def __init__(self, *args, **kwargs):
+        self._contact = None
+        super().__init__(*args, **kwargs)
+
+    def validate_product(self, value):
+        self._product = ProductInfo.objects.filter(pk=value).first()
+        if not self._product:
+            error_message = "This product's item doesn't exist"
+            raise serializers.ValidationError(error_message)
+        return value
+
+    def validate_quantity(self, attrs):
+        if self._product.quantity < attrs['quantity']:
+            error_message = "Unfortunately, we're do not have such amount of product"
+            raise serializers.ValidationError(error_message)
+        return attrs
+    def validate_contact(self, value):
+        self._contact = Contact.objects.filter(pk=value).first()
+        if not self._contact:
+            error_message = "This contact form doesn't exist"
+            raise serializers.ValidationError(error_message)
+        return value
+
+    def save(self, **kwargs):
+        contact = self.validated_data['contact']
+        product = self.validated_data['product']
+        quantity = self.validated_data['quantity']
+        order = Order.objects.filter(user=contact.user, contact=contact).first()
+        if not order:
+            order = Order.objects.create(user=contact.user, contact=contact, state='new')
+            order.save()
+        item = OrderItem.objects.filter(order=order, product=product).first()
+        if not item:
+            item = OrderItem.objects.create(order=order, product=product, quantity=quantity)
+        return item
+

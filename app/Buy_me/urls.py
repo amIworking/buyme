@@ -23,18 +23,20 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions, routers
 
-from apps.shop.views import ShopView, BasketView, ProductsView
+from apps.shop.views import ShopView, BasketView, ProductsView, OrderView, ContactView
 
 v1_router = routers.SimpleRouter()
 v1_router.register(r'shops', ShopView, basename='shops')
 v1_router.register(r'products', ProductsView, basename='products')
 v1_router.register(r'basket', BasketView, basename='basket')
+v1_router.register(r'order', OrderView, basename='order')
+v1_router.register(r'contact', ContactView, basename='contact')
 
 
 schema_view = get_schema_view(
-    openapi.Info(title="Dominos API", default_version="v1", description="Routes of Dominos project"),
+    openapi.Info(title="Buyme API", default_version="v1", description="Routes of Buyme project"),
     public=False,
-    permission_classes=(permissions.AllowAny,),
+    permission_classes=(permissions.IsAdminUser,),
 )
 
 v1_api = [

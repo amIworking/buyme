@@ -6,10 +6,11 @@ from rest_framework.response import Response
 from apps.shop.serializers import (
     ShopSerializerBase, ShopCreateSerializer, ShopReadSerializer, ShopDeleteSerializer,
     BasketSerializerBase, ChangeItemSerializer, DeleteBasketItem,
-    ProductSerializer
+    ProductSerializer, OrderSerializerBase, ChangeOrderSerializer,
+    ContactSerializer
 )
 
-from apps.shop.models import Shop, Basket, ProductInfo
+from apps.shop.models import Shop, Basket, ProductInfo, Order, OrderItem, Contact
 
 
 class ShopView(mixins.ListModelMixin,
@@ -91,3 +92,26 @@ class BasketView(viewsets.ViewSet):
             kwargs["context"] = {"request": request}
         return serializer_class(**kwargs)
 
+class ContactView(viewsets.ViewSet):
+    queryset = Contact.objects.all()
+    serializer_class = ContactSerializer
+    permission_classes = (permissions.AllowAny,)
+
+class OrderView(viewsets.ViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializerBase
+    permission_classes = (permissions.AllowAny,)
+
+    def list(self, request, *args, **kwargs):
+        if Order.objects.filter(user=request.user).exists():
+            orders = Order.objects.filter(user=request.user)
+            return Response(OrderSerializerBase(instance=orders, many=True).data)
+        else:
+            return Response({"message":"You have no orders"})
+
+    @action(methods=['post'], detail=False, serializer_class=ChangeOrderSerializer)
+    def create_order(self, request, *args, **kwargs):
+        serializer = ChangeOrderSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+        return Response(BasketSerializerBase(instance=order).data)
